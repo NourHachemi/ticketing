@@ -3,8 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { BrowserProvider, Contract, formatEther } from 'ethers'
 import './App.css'
 
-const API_URL = 'http://127.0.0.1:8000'
-const SELLER_ADDRESS = '0xDD91599A58d1FC1937F2Fef25A3759033fbB6D60'
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 const SEPOLIA_CHAIN_ID = 11155111n
 const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/'
 
@@ -39,6 +38,7 @@ function wait(milliseconds) {
 
 function App() {
   const [events, setEvents] = useState([])
+  const [sellerAddress, setSellerAddress] = useState('')
   const [selectedEventId, setSelectedEventId] = useState('')
   const [categories, setCategories] = useState([])
   const [selectedCategoryId, setSelectedCategoryId] = useState('')
@@ -76,8 +76,18 @@ function App() {
     (category) => category.id === Number(selectedCategoryId),
   )
   const contractAddress = selectedCategory?.contract_address ?? ''
-  const isSeller =
-    account && account.toLowerCase() === SELLER_ADDRESS.toLowerCase()
+  const isSeller = Boolean(
+    account &&
+      sellerAddress &&
+      account.toLowerCase() === sellerAddress.toLowerCase(),
+  )
+
+  const loadPublicConfig = useCallback(async () => {
+    const response = await fetch(`${API_URL}/config`)
+    if (!response.ok) throw new Error('Unable to load application configuration')
+    const config = await response.json()
+    setSellerAddress(config.seller_address)
+  }, [])
 
   const loadEvents = useCallback(async (preferredEventId) => {
     const response = await fetch(`${API_URL}/events`)
@@ -87,12 +97,15 @@ function App() {
 
     if (preferredEventId) {
       setSelectedEventId(String(preferredEventId))
-    } else if (!selectedEventId && loadedEvents.length) {
-      const defaultEvent =
-        loadedEvents.find((event) => event.id === 3) ?? loadedEvents[0]
-      setSelectedEventId(String(defaultEvent.id))
+    } else if (loadedEvents.length) {
+      setSelectedEventId((currentId) => {
+        if (currentId) return currentId
+        const defaultEvent =
+          loadedEvents.find((event) => event.id === 3) ?? loadedEvents[0]
+        return String(defaultEvent.id)
+      })
     }
-  }, [selectedEventId])
+  }, [])
 
   const loadCategories = useCallback(async (eventId, preferredCategoryId) => {
     if (!eventId) {
@@ -188,6 +201,10 @@ function App() {
       setIsLoadingTickets(false)
     }
   }, [account, contractAddress])
+
+  useEffect(() => {
+    loadPublicConfig().catch((error) => setStatus(error.message))
+  }, [loadPublicConfig])
 
   useEffect(() => {
     loadEvents().catch((error) => setStatus(error.message))
@@ -339,6 +356,8 @@ function App() {
       })
       const created = await response.json()
       if (!response.ok) throw new Error(created.detail || 'Event creation failed')
+      setSelectedCategoryId('')
+      setCategories([])
       await loadEvents(created.id)
       setEventForm({ title: '', description: '', starts_at: '' })
       setStatus(`Event "${created.title}" created. Add its ticket category.`)
@@ -422,6 +441,8 @@ function App() {
       </header>
 
       <main>
+        {status && <p className="status global-status">{status}</p>}
+
         <section className="selector-card">
           <label htmlFor="event-select">Event</label>
           <select

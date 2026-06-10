@@ -68,6 +68,10 @@ PRIVATE_KEY=clePriveeDuWalletVendeur
 PINATA_JWT=jwtPinata
 ```
 
+Ce fichier est l'unique fichier `.env` du projet. L'API y lit les secrets et
+fournit uniquement l'adresse publique du vendeur au frontend. Il ne faut donc
+modifier aucune adresse dans `frontend/src/App.jsx`.
+
 - `SEPOLIA_RPC_URL` : URL permettant à Forge et Web3.py d'accéder à Sepolia ;
 - `SELLER_ADDRESS` : adresse publique MetaMask du vendeur ;
 - `TICKET_NFT_ADDRESS` : contrat principal déjà déployé, peut rester vide avant le premier déploiement ;
