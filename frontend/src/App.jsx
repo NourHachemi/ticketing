@@ -216,6 +216,9 @@ function App() {
   }, [loadCategories, selectedEventId])
 
   useEffect(() => {
+    setPrice(null)
+    setRemaining(null)
+    setContractBalance(null)
     if (!contractAddress) return
     loadContractData(account, contractAddress).catch((error) =>
       setStatus(error.shortMessage || error.message),
@@ -281,7 +284,8 @@ function App() {
       const provider = new BrowserProvider(getEthereum())
       const signer = await provider.getSigner()
       const contract = new Contract(contractAddress, CONTRACT_ABI, signer)
-      const transaction = await contract.buy(1, { value: price })
+      const currentPrice = await contract.price()
+      const transaction = await contract.buy(1, { value: currentPrice })
       setStatus('Waiting for Sepolia confirmation...')
       await transaction.wait()
       setStatus('Ticket purchased successfully.')
