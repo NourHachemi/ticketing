@@ -51,15 +51,30 @@ cd ../frontend && npm run lint && npm run build
 
 ## Configuration
 
-Le fichier local `contracts/.env`, exclu de Git, contient :
+Créer le fichier local de configuration à partir du modèle :
 
-- `SEPOLIA_RPC_URL`
-- `SELLER_ADDRESS`
-- `PRIVATE_KEY`
-- `PINATA_JWT`
-- `TICKET_NFT_ADDRESS`
+```bash
+cd contracts
+cp .env.example .env
+```
 
-Ne jamais publier les clés privées ou le JWT Pinata.
+Compléter ensuite `contracts/.env` :
+
+```env
+SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com/
+SELLER_ADDRESS=0xAdressePubliqueMetaMaskDuVendeur
+TICKET_NFT_ADDRESS=0xAdresseDuContratDejaDeploye
+PRIVATE_KEY=clePriveeDuWalletVendeur
+PINATA_JWT=jwtPinata
+```
+
+- `SEPOLIA_RPC_URL` : URL permettant à Forge et Web3.py d'accéder à Sepolia ;
+- `SELLER_ADDRESS` : adresse publique MetaMask du vendeur ;
+- `TICKET_NFT_ADDRESS` : contrat principal déjà déployé, peut rester vide avant le premier déploiement ;
+- `PRIVATE_KEY` : clé du compte vendeur, utilisée par Forge et l'API pour signer ;
+- `PINATA_JWT` : JWT créé dans Pinata, avec les droits d'upload de fichiers et JSON.
+
+Le fichier `.env` est exclu de Git. Ne jamais publier la clé privée, le JWT Pinata ou envoyer une capture de ce fichier. Utiliser un wallet de développement dédié au testnet.
 
 ## Contrat Sepolia
 

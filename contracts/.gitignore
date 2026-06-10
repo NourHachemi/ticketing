@@ -6,3 +6,4 @@ broadcast/
 # Secrets
 .env
 .env.*
+!.env.example
