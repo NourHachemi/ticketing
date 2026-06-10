@@ -5,7 +5,7 @@ Application de billetterie NFT réalisée pour le cours Blockchain.
 ## Fonctionnalités
 
 - création et consultation d'événements ;
-- une catégorie de billets par contrat ERC-721 ;
+- une catégorie de billets par contrat ERC-721 conforme à `Skeleton.sol` ;
 - image et métadonnées stockées sur IPFS avec Pinata ;
 - achat direct en SepoliaETH avec MetaMask ;
 - faux paiement par carte, suivi d'un mint par l'API ;
@@ -78,4 +78,4 @@ Le fichier `.env` est exclu de Git. Ne jamais publier la clé privée, le JWT Pi
 
 ## Contrat Sepolia
 
-`0x2B7A5d59B8Ae33e4B6b0894442603038166BBB5d`
+L'adresse dépend du dernier contrat créé depuis l'interface Admin.

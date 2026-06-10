@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from web3 import Web3
+from web3.logs import DISCARD
 
 from app.domain.events import BlockchainDeploymentError, TicketMintError
 
@@ -40,10 +41,9 @@ class Web3TicketContractDeployer:
             transaction = self.contract_factory.constructor(
                 name,
                 symbol,
-                price_wei,
                 max_supply,
-                self.seller_address,
                 metadata_uri,
+                price_wei,
             ).build_transaction(
                 {
                     "from": self.seller_address,
@@ -81,8 +81,9 @@ class Web3TicketContractDeployer:
                 address=Web3.to_checksum_address(contract_address),
                 abi=self.contract_abi,
             )
-            transaction = contract.functions.mintFor(
-                Web3.to_checksum_address(buyer_address)
+            transaction = contract.functions.mint(
+                Web3.to_checksum_address(buyer_address),
+                1,
             ).build_transaction(
                 {
                     "from": self.seller_address,
@@ -100,14 +101,14 @@ class Web3TicketContractDeployer:
                 transaction_hash,
                 timeout=180,
             )
-            events = contract.events.TicketMintedFor().process_receipt(receipt)
+            events = contract.events.Transfer().process_receipt(
+                receipt,
+                errors=DISCARD,
+            )
         except Exception as error:
             raise TicketMintError("Ticket mint failed") from error
 
         if receipt["status"] != 1 or not events:
             raise TicketMintError("Ticket mint reverted")
 
-        return (
-            events[0]["args"]["tokenId"],
-            transaction_hash.hex(),
-        )
+        return events[0]["args"]["tokenId"], transaction_hash.hex()

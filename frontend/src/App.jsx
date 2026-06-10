@@ -9,14 +9,14 @@ const SEPOLIA_CHAIN_ID = 11155111n
 const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/'
 
 const CONTRACT_ABI = [
-  'function buyTicket() payable returns (uint256)',
-  'function ticketPrice() view returns (uint256)',
+  'function buy(uint256 quantity) payable returns (uint256[])',
+  'function price() view returns (uint256)',
   'function remainingSupply() view returns (uint256)',
   'function balanceOf(address owner) view returns (uint256)',
   'function ownerOf(uint256 tokenId) view returns (address)',
   'function tokenURI(uint256 tokenId) view returns (string)',
+  'function ticketsOf(address account) view returns (uint256[])',
   'function withdraw()',
-  'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
 ]
 
 function shortAddress(address) {
@@ -138,7 +138,7 @@ function App() {
       ? provider.getBalance(walletAddress)
       : Promise.resolve(null)
     const [ticketPrice, ticketsLeft, balance, funds] = await Promise.all([
-      contract.ticketPrice(),
+      contract.price(),
       contract.remainingSupply(),
       balancePromise,
       provider.getBalance(address),
@@ -160,16 +160,9 @@ function App() {
     setIsLoadingTickets(true)
 
     try {
-      const latestBlock = await provider.getBlockNumber()
-      const fromBlock = Math.max(latestBlock - 49_000, 0)
-      const events = await contract.queryFilter(
-        contract.filters.Transfer(null, walletAddress),
-        fromBlock,
-        'latest',
+      const tokenIds = (await contract.ticketsOf(walletAddress)).map(
+        (tokenId) => tokenId.toString(),
       )
-      const tokenIds = [
-        ...new Set(events.map((event) => event.args.tokenId.toString())),
-      ]
       const loadedTickets = await Promise.all(
         tokenIds.map(async (tokenId) => {
           try {
@@ -271,7 +264,7 @@ function App() {
       const provider = new BrowserProvider(getEthereum())
       const signer = await provider.getSigner()
       const contract = new Contract(contractAddress, CONTRACT_ABI, signer)
-      const transaction = await contract.buyTicket({ value: price })
+      const transaction = await contract.buy(1, { value: price })
       setStatus('Waiting for Sepolia confirmation...')
       await transaction.wait()
       setStatus('Ticket purchased successfully.')

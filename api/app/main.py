@@ -28,8 +28,8 @@ async def lifespan(app: FastAPI):
         seller_address=os.environ["SELLER_ADDRESS"],
         artifact_path=CONTRACTS_ROOT
         / "out"
-        / "TicketNFT.sol"
-        / "TicketNFT.json",
+        / "Ticket.sol"
+        / "Ticket.json",
     )
     app.state.ticket_minter = app.state.ticket_contract_deployer
     app.state.ticket_metadata_storage = PinataTicketMetadataStorage(
